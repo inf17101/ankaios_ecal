@@ -1,0 +1,32 @@
+apiVersion: v0.1
+workloads:
+  coordinates_publisher:
+    runtime: podman
+    agent: agent_A
+    restartPolicy: ON_FAILURE
+    tags:
+      - key: project
+        value: eCAL
+    runtimeConfig: |
+      image: coordinates_publisher:latest
+      commandOptions: ["--ipc=host", "--pid=host", "--network=host", "-v", "/home/oliver/projects/ankaios_ecal/coordinates_publisher/assets/trk_files/test_trk.trk:/trk_files/trk.trk", "--name", "coordinates_publisher"]
+  sideseeing_starter:
+    runtime: podman
+    agent: agent_A
+    restartPolicy: NEVER
+    tags:
+      - key: project
+        value: eCAL
+    runtimeConfig: |
+      image: sideseeing_starter:latest
+      commandOptions: ["--ipc=host", "--pid=host", "--network=host", "--name", "sideseeing_starter"]
+  web_ivi:
+    runtime: podman
+    agent: agent_A
+    restartPolicy: NEVER
+    tags:
+      - key: project
+        value: web_ivi
+    runtimeConfig: |
+      image: web_ivi:latest
+      commandOptions: ["--ipc=host", "--pid=host", "--network=host", "--name", "web_ivi"]

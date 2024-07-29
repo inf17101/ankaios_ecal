@@ -1,0 +1,30 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/rust
+{
+    "name": "Sideseeing Starter Dev",
+    "build": {
+        "dockerfile": "Dockerfile",
+        "target": "dev"
+    },
+   "mounts": [
+   ],
+   "runArgs": [],
+   "customizations": {
+       "vscode": {
+           "settings": {
+           },
+           // Add the IDs of extensions you want installed when the container is created.
+           "extensions": [
+           "mutantdino.resourcemonitor",
+           "timonwong.shellcheck",
+           "streetsidesoftware.code-spell-checker",
+           "ms-python.python",
+           "ms-python.vscode-pylance",
+           "EditorConfig.EditorConfig"
+           ]
+       }
+   },
+   "workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/sideseeing_starter/,type=bind",
+   "workspaceFolder": "/workspaces/sideseeing_starter/",
+   "remoteUser": "root"
+}

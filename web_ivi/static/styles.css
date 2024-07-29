@@ -1,0 +1,95 @@
+
+/* set margin and padding to zero for all elements */
+* {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+/* set the background color to black */
+body {
+    background-color: black;
+    /* set font color to white */
+    color: white;
+}
+
+.row-main {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    padding-left: 5%;
+    padding-right: 5%;
+}
+
+#speedometer {
+    flex: 1; 
+    text-align: center;
+    align-items: center;
+}
+
+#speed-value {
+    font-family: 'Lucida Sans Regular';
+    font-size: 100px;
+    color: white;
+    transform: translate(0%, -260%);
+}
+
+#torque {
+    flex: 1;
+    text-align: center;
+    align-items: center;
+}
+
+#torque-value {
+    font-family: 'Lucida Sans Regular';
+    font-size: 100px;
+    color: white;
+    transform: translate(0%, -260%);
+}
+
+#info-screen {
+    flex: 1;
+    text-align: center;
+    padding: 50px;
+}
+
+/* sightseeing info formatting start */
+.site-info {
+    text-align: left;
+    background-color: #202326;
+    border-radius: 7px;
+    padding: 50px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+.site-info h2 {
+    padding-bottom: 20px;
+    color: #59F2BF;
+}
+
+.site-info p {
+    padding-top: 10px;
+}
+
+.site-info a {
+    padding-top: 10px;
+    color: #59F2BF;
+    text-decoration: none;
+}
+
+.site-info a:hover {
+    color: #95FFE4;
+}
+
+/* sightseeing info formatting end */
+
+/* make the website responsive */
+@media screen and (max-width: 1500px) {
+    .row-main {
+        flex-direction: column;
+    }
+    #speedometer, #torque, #info-screen {
+        flex: 1;
+    }
+}

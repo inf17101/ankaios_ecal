@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package proto_sideseeing_info;
+
+message SideseeingInfo
+{
+  string name                   = 1;
+  string type                   = 2;
+  string wheelchair             = 3;
+  string wheelchair_toilets     = 4;
+  string fee                    = 5;
+  string phone                  = 6;
+  string website                = 7;
+  string email                  = 8;
+  string opening_hours          = 9;
+  string addr_street            = 10;
+  string addr_housenumber       = 11;
+  string addr_postcode          = 12;
+  string addr_city              = 13;
+  string wikipedia              = 14;
+}

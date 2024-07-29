@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package proto_lat_lon;
+
+message Coordinates
+{
+  double lat      = 1;
+  double lon      = 2;
+}

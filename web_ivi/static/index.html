@@ -1,0 +1,27 @@
+<!-- create HTML page with title Demo Web IVI -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Demo Web IVI</title>
+    <!-- include styles.css -->
+    <link rel="stylesheet" type="text/css" href="static/styles.css">
+    <script type="text/javascript" src="static/sideseeing.js"></script>
+    <script type="text/javascript" src="static/speedometer-torque.js"></script>
+</head>
+<body>
+    <!-- create a structure to present two images one on the left and one on the right of the screen with centered horizontally and vertically on the screen and separated by a marging of 500 px between those -->
+    <div class="row-main">
+        <!-- create one row with three columns -->
+        <div id="speedometer">
+            <img src="assets/speedometer.svg" width="500px">
+            <h2 id="speed-value">100</h2>
+        </div>
+        <div id="info-screen">
+        </div>
+        <div id="torque">
+            <img src="assets/torque.svg" width="500px">
+            <h2 id="torque-value">D7</h2>
+        </div>
+    </div>
+</body>
+</html>
