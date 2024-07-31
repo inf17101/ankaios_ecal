@@ -17,8 +17,8 @@ def setup_logger():
     return logging.getLogger(__name__)
 
 TRK_FILE_PATH = "/trk_files/trk.trk"
-LON_POSITION = 1
-LAT_POSITION = 2
+LON_POSITION = 0
+LAT_POSITION = 1
 logger = setup_logger()
 
 class CoordinatesPublisher:

@@ -9,7 +9,7 @@ workloads:
         value: eCAL
     runtimeConfig: |
       image: coordinates_publisher:latest
-      commandOptions: ["--ipc=host", "--pid=host", "--network=host", "-v", "/home/oliver/projects/ankaios_ecal/coordinates_publisher/assets/trk_files/test_trk.trk:/trk_files/trk.trk", "--name", "coordinates_publisher"]
+      commandOptions: ["--ipc=host", "--pid=host", "--network=host", "-v", "/home/oliver/projects/ankaios_ecal/coordinates_publisher/assets/trk_files/de_erlangen_sideseeing.trk:/trk_files/trk.trk", "--name", "coordinates_publisher"]
   sideseeing_starter:
     runtime: podman
     agent: agent_A

@@ -120,11 +120,6 @@ eventSource.addEventListener("sideseeings", function (event) {
     let raw_data = event.data;
     let attraction_json = JSON.parse(raw_data);
 
-    if (attraction_json.addrStreet == null) {
-        console.log("skipping sideseeing without address.");
-        return;
-    }
-
     console.log(attraction_json);
     lock = true;  // Lock the list
     sideseeings.push(attraction_json);
