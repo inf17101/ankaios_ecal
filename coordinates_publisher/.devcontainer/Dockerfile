@@ -11,6 +11,9 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
     && add-apt-repository ppa:ecal/ecal-latest \
     && apt-get install -y python3-ecal5
 
+RUN PIP_BREAK_SYSTEM_PACKAGES=1 pip install \
+    requests
+
 FROM dev as prod
 
 COPY proto_lat_lon /proto_lat_lon

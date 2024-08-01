@@ -12,7 +12,7 @@ The following visualization shows the architecture of the sample scenario includ
 
 ## Run
 
-Adjust the mount path of `coordinates_publisher` to use an absolute path to the coordinates file inside the [Ankaios manifest](config/startConfig.yaml). Replace the path `/path/to/ankaios_ecal/coordinates_publisher/assets/trk_files/de_erlangen_sideseeing.trk` through the absolute path.
+Adjust the mount path of `coordinates_publisher` to use an absolute path to the coordinates file inside the [Ankaios manifest](config/startConfig.yaml). Replace the path `/path/to/ankaios_ecal/coordinates_publisher/assets/trk_files/route_nuernberg.csv` through the absolute path.
 
 The examples can be run by executing the following script, which builds all the workloads with the podman runtime and starts Ankaios with a predefined [Ankaios manifest](config/startConfig.yaml) containing all the built workloads:
 
@@ -34,18 +34,20 @@ Press Ctr + C in the terminal window where the `run.sh` script is running. Do no
 
 ## Change the route of the vehicle
 
-A simple csv file is provided containing longitude and latitude coordinates.
+A simple csv file is provided containing latitude and longitude coordinates.
 
 ```shell
-# coordinates_publisher/assets/trk_files/de_erlangen_sideseeing.trk
-10.993287735851851,49.588964964568945
-10.99349643047723,49.58904967255495
+# coordinates_publisher/assets/trk_files/route_nuernberg.csv
+latitude,longitude
+49.43814,11.117565
+49.438233,11.117296
+49.438346,11.116884
 ...
 ```
 
 You can generate a new route and put the coordinates in the same csv file structure into another a file inside `coordinates_publisher/assets/trk_files` and adjust the Ankaios manifest to instruct the `coordinates_publisher` to use that new route file.
 
-Adjust this line and replace `<new_trk_file>.trk` with the new file name:
+Adjust this line and replace `<new_trk_file>.csv` with the new file name:
 
 ```yaml
 # line 14
@@ -53,6 +55,44 @@ coordinates_publisher:
 ...
   runtimeConfig:
     ...
-    commandOptions: ["--ipc=host", "--pid=host", "--network=host", "-v", "/path/to/coordinates_publisher/assets/trk_files/<new_trk_file>.trk:/trk_files/trk.trk", "--name", "coordinates_publisher"]
+    commandOptions: ["--ipc=host", "--pid=host", "--network=host", "-v", "/path/to/coordinates_publisher/assets/trk_files/<new_trk_file>.csv:/trk_files/trk.csv", "--name", "coordinates_publisher"]
 ...
 ```
+
+To generate a new route the open osm.router-project.org API is used. Go to google maps or your favourite maps API and select some source and destination longitude/latitude coordinates and execute the following script inside the tools folder after entering the `coordintates_publisher` devcontainer:
+
+```shell
+python3 tools/generate_route.py --output assets/trk_files/new_route_file.csv 49.44215 11.111729 49.443540 11.110035
+```
+
+The first the latitude/longitude pair represents the source and the second latitude/longitude pair is the destination (use -h of the python script to display the argument information). The script uses the osm.router-project API to generate a route between the source and destination and writes the output to a csv file containing the latitude and longitude coordinates of the whole route.
+
+Recommendation: Keep the route short otherwise you have a long runtime because the coordinates_publisher publishes lat/lon coordinates every 1 sec.
+
+Adjust the path like mentioned above inside the Ankaios manifest to point to your new csv file containing the coordinates of the new generated route.
+
+## Extend the previous challenge
+
+If you search for some challenge, then develop a new workload that publishes the speed value of the current lat/lon coordinate with Eclipse eCAL. The `web_ivi` can then subscribe on the speed values and can adjust the speed inside the speedometer according to the received speed value.
+
+A good starting point to receive speed values for a lat/lon coordinate is to use the following code snippet using the overpass-api:
+
+```python
+# Function to query Overpass API for speed limits
+def query_speed_limits(lat, lon):
+    overpass_url = "http://overpass-api.de/api/interpreter"
+    overpass_query = f"""
+    [out:json];
+    way(around:50,{lat},{lon})["maxspeed"];
+    out body;
+    """
+    response = requests.post(overpass_url, data={'data': overpass_query})
+    data = response.json()
+    speed_limits = []
+    for element in data['elements']:
+        if 'maxspeed' in element['tags']:
+            speed_limits.append(element['tags']['maxspeed'])
+    return speed_limits
+```
+
+Feel free to create own challenges or modifications.

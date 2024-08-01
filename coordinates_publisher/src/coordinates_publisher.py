@@ -16,9 +16,9 @@ def setup_logger():
     logging.basicConfig(level=log_level, format='[%(asctime)s %(levelname)s] %(message)s', datefmt='%d-%b-%y %H:%M:%S')
     return logging.getLogger(__name__)
 
-TRK_FILE_PATH = "/trk_files/trk.trk"
-LON_POSITION = 0
-LAT_POSITION = 1
+TRK_FILE_PATH = "/trk_files/trk.csv"
+LAT_POSITION = 0
+LON_POSITION = 1
 logger = setup_logger()
 
 class CoordinatesPublisher:
@@ -55,6 +55,7 @@ def extract_latitude_longitude(line):
 def read_lat_lon_from_file_and_publish():
     try:
         with open(TRK_FILE_PATH) as trk_file:
+            next(trk_file) # skip header
             next_line = trk_file.readline()
             coordinates_publisher = CoordinatesPublisher()
             while coordinates_publisher.ok() and next_line:

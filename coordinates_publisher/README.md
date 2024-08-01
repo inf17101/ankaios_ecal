@@ -9,7 +9,7 @@ podman build -t coordinates_publisher:latest -f .devcontainer/Dockerfile .
 ## Run
 
 ```shell
-podman run -it --rm -v ./assets/trk_files/test_trk.trk:/trk_files/trk.trk --ipc=host --pid=host --network=host coordinates_publisher:latest /bin/bash
+podman run -it --rm -v ./assets/trk_files/route_nuernberg.csv:/trk_files/trk.csv --ipc=host --pid=host --network=host coordinates_publisher:latest /bin/bash
 ```
 
 ## Development
@@ -23,9 +23,18 @@ touch /usr/local/lib/lat_lon_coordinates/__init__.py
 ```
 ## Run
 
-```shell
-mkdir /trk_files
-cp assets/trk_files/test_trk.trk /trk_files/trk.trk
+The scripts expects the csv file containing latitude and longitude coordinates under `/trk_files/trk.csv`.
+
+Prepare the execution with the following commands:
+
+```shell`
+mkdir -p /trk_files
+cp assets/trk_files/route_nuernberg.csv /trk_files/trk.csv
 export PYTHONPATH="${PYTHONPATH}:/usr/local/lib/lat_lon_coordinates"
-python3 src/coordinates_publisher.py assets/trk_files/test_trk.trk
+```
+
+Execute the coordinates publisher:
+
+```shell
+python3 src/coordinates_publisher.py
 ```
