@@ -144,7 +144,7 @@ def query_speed_limits(lat, lon):
 
 Feel free to create own challenges or modifications.
 
-## Use AI to optimize the city detection
+### Use AI to optimize the city detection
 
 Currently, the `sideseeing_starter` relies on the [Nominatim API](https://nominatim.org/release-docs/develop/) like explanied in the architecture nodes above. The meta information for an latitude/longitude coordinate does not contain the exact information about whether the vehicle is within a city or not. The `sideseeing_starter`'s code was created to use as strict checks as the data from the API allows. Keep in mind that also some highway parts are considered as part of a city boundary. To improve the place name sign detection (a real city boundary detection) implement an AI workload that checks with the vehicles front camera if the place name sign was passed to make city recognition more granular.
 
