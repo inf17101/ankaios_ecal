@@ -115,39 +115,3 @@ coordinates_publisher:
     commandOptions: ["--ipc=host", "--pid=host", "--network=host", "-v", "/path/to/coordinates_publisher/assets/trk_files/<new_trk_file>.csv:/trk_files/trk.csv", "--name", "coordinates_publisher"]
 ...
 ```
-
-## Extend the previous challenge
-
-### Send real speed limits
-
-If you search for some challenge, then develop a new workload that publishes the speed value of the current lat/lon coordinate with Eclipse eCAL. The `web_ivi` can then subscribe on the speed values and can adjust the speed inside the speedometer according to the received speed value.
-
-A good starting point to receive speed values for a lat/lon coordinate is to use the following code snippet using the overpass-api:
-
-```python
-# Function to query Overpass API for speed limits
-def query_speed_limits(lat, lon):
-    overpass_url = "http://overpass-api.de/api/interpreter"
-    overpass_query = f"""
-    [out:json];
-    way(around:50,{lat},{lon})["maxspeed"];
-    out body;
-    """
-    response = requests.post(overpass_url, data={'data': overpass_query})
-    data = response.json()
-    speed_limits = []
-    for element in data['elements']:
-        if 'maxspeed' in element['tags']:
-            speed_limits.append(element['tags']['maxspeed'])
-    return speed_limits
-```
-
-Feel free to create own challenges or modifications.
-
-### Use AI to optimize the city detection
-
-Currently, the `sideseeing_starter` relies on the [Nominatim API](https://nominatim.org/release-docs/develop/) like explanied in the architecture nodes above. The meta information for an latitude/longitude coordinate does not contain the exact information about whether the vehicle is within a city or not. The `sideseeing_starter`'s code was created to use as strict checks as the data from the API allows. Keep in mind that also some highway parts are considered as part of a city boundary. To improve the place name sign detection (a real city boundary detection) implement an AI workload that checks with the vehicles front camera if the place name sign was passed to make city recognition more granular.
-
-Practical thoughts:
-
-Introduce demo data and implement the AI workload. Maybe you can extend the `coordinates_publisher` to support some path to the images of the place name signs (entering and leaving a city) in a separate column of a certain latitude/longitude coordinate. The image is published with the Eclipse eCAL middleware and the AI workload subscribes on that image data. The AI workload analyses the picture and determines accodring to the place name sign or some other indicators that the vehicle is entering or leaving the city. Extend the `sideseeing_starter` workload afterwards to include this new information about the place name signs to determine if the `sideseeing_generator` shall be started or not. You can use Eclipse eCAL again to receive the information of the AI workload inside the `sideseeing_starter` by subscribing to that new topic.
