@@ -1,20 +1,39 @@
-#  Blueprint Eclipse Ankaios and Eclipse eCAL
+# In-vehicle sideseeing generator demo
 
 The repository contains a blueprint for implementing a sample scenario using [Eclipse Ankaios](https://eclipse-ankaios.github.io/ankaios/0.3/) and [Eclipse eCAL](https://eclipse-ecal.github.io/ecal/).
 
-The sample scenario is to generate sideseeing information when the vehicle enters a city. The sideseeing information is displayed in the user's virtual cockpit (IVI), which in this case is a demo Web IVI running as a workload and accessible through the user's browser. When the vehicle leaves the city, no sideseeing information is visible in the IVI.
+The sample scenario is to generate sideseeing information when the vehicle is within a city. The sideseeing information is displayed in the user's virtual cockpit (IVI), which is in this case a web-based demo IVI and accessible through the user's browser. When the vehicle leaves the city, no sideseeing information is displayed anymore.
 
-To realize this use case, the software orchestrator Eclipse Ankaios and the pub/sub middleware Eclipse eCAL, both optimized for automotive use, are used. Eclipse Ankaios acts as a software orchestrator and deploys all applications (called workloads in the following) of the scenario as containers on the podman runtime. A software orchestrator allows workloads to be dynamically launched. The workload that generates the sideseeing information and publishes the data only needs to run when the vehicle is in a city. The 'sideseeing starter' workload starts the 'sideseeing generator' workload when the vehicle enters a city and deletes it when the vehicle leaves the city. It uses the Ankaios [control interface](https://eclipse-ankaios.github.io/ankaios/0.3/reference/control-interface/) to dynamically start and stop the workload. Eclipse eCAL is used to exchange information about the sideseeing and lat/lon positions of the vehicle between interested subscriber workloads. To do this, eCAL is configured to use shared memory on the localhost.
+This means that an application (sideseeing generator) is required which, depending on the current location of the vehicle, downloads information about sideseeings from the internet and publishes it so that the sideseeing data can be displayed in the demo IVI. Thus, to save resources in the vehicle, the sideseeing generator only needs to run when the vehicle is within a city, otherwise not. A software orchestrator such as [Eclipse Ankaios](https://eclipse-ankaios.github.io/ankaios/0.3/), which is optimized for these types of tasks in the automotive sector, facilitates the dynamic launch of applications with all their dependencies.
 
-The following visualization shows the architecture of the example scenario, including all workloads and information flow.
+In addition, a modern software-defined vehicle (SDV) benefits from fast updates of individual applications and many new features that are loaded into the vehicle on-the-fly. The challenges arise in managing and maintaining the increasing number of dependencies and third-party libaries that an application has today. Containerized applications meet these challenges, because they encapsulate software and its dependencies into lightweight, consistent units that can run seamlessly across various computing environments. They are portable and implicitly support simple versioning and visibility of all dependencies at a glance. Containerized applications are therefore used for the sideseeing example scenario.
 
-![Sample scenario sideseeings](scenario.drawio.svg)
+Another challenge is the ever-increasing flow of information in modern vehicles. Even for this sideseeing scenario certain applications need the information about vehicle position (latitude/longitude), a field indicating whether the vehicle is within the city and the sideseeing data itself. And in some scenarios multiple subscribers on the same data are required. Thus, fast middleware is needed that forwards the information to the interested applications. [Eclipse eCAL](https://eclipse-ecal.github.io/ecal/) is such a middleware, optimized for use in the vehicle. It follows the publish/subscribe approach with an easy-to-use API and manages inter-process data exchange, as well as inter-host communication. 
+
+The following visualization shows the architecture of the sideseeing sample scenario, including all applications and information flow. In the following, a containerized application are referred to as a workload, as an application that is managed by [Eclipse Ankaios](https://eclipse-ankaios.github.io/ankaios/0.3/) is designated as such.
+
+![Workload Architecture Sideseeings](assets/scenario_light_mode.drawio.svg#gh-light-mode-only)
+![Workload Architecture Sideseeings](assets/scenario_dark_mode.drawio.svg#gh-dark-mode-only)
+
+The Ankaios server is started with an initial Ankaios manifest containing configuration of all grey colored workloads. These workloads are assigned to an Ankaios agent and are started initially. The `Coordinates Publisher` reads latitude/longitude coordinates from a csv file and publishes those coordinates each second using the [Eclipse eCAL](https://eclipse-ecal.github.io/ecal/) middleware. The `Sideseeing Starter` workload subscribes on the coordinates and checks for each coordinate via the [Nominatim API](https://nominatim.org/release-docs/develop/) if the vehicle is within a city or not. Once the vehicle is detected as within a city it starts the `Sideseeing Generator` workloads dynamically by instructing Eclipse Ankaios to create the new workload. To send requests to Eclipse Ankaios the workload uses the so-called [Control Interface](https://eclipse-ankaios.github.io/ankaios/0.3/reference/control-interface/) of Ankaios. The `Sideseeing Starter` instructs Ankaios to delete the `Sideseeing Generator` workload when it detects that the current coordinate is not within a city (e.g. on a highway). The `Sideseeing Generator` uses the open source [Overpass API](https://dev.overpass-api.de/overpass-doc/en/preface/preface.html) (copy of OpenStreetMap) to fetch sideseeing information around 5km of the current lat/lon coordinate of the vehicle. Since the demo `Web IVI` needs to know the information when to display the sideseeing data or not, it subscirbes on a topic about a boolean field indicating if the vehicle is within a city or not. For simplicitly the `Sideseeing Starter` publishes this boolean field since it already has this information. The `Web IVI` subscribes on the sideseeing data and displays it in the web browser of the user. It uses server-side events to send the received sideseeing data to the ivi running inside user's web browser.
+
+**Please note:** Eclipse Ankaios supports multi-node setups within its [architecture](https://eclipse-ankaios.github.io/ankaios/0.3/architecture/) including one Ankaios server and multiple Ankaios agents. For simplicitly only one agent on the same host of the server (all localhost) is used. Feel free to change the scenario to use a multi-node setup by adding more Ankaios agents similar like done in this [Ankaios base tutorial](https://eclipse-ankaios.github.io/ankaios/0.3/usage/tutorial-vehicle-signals/).
+
+**Please note:** The [Overpass API](https://dev.overpass-api.de/overpass-doc/en/preface/preface.html) is used for simplicitly because it is free and no API key is needed. In addition, the [Nominatim API](https://nominatim.org/release-docs/develop/) provides a Python lib already. Keep in mind that the meta data of the [Nominatim API](https://nominatim.org/release-docs/develop/) contains not the exact information whether a vehicle is within a city or not, the code tries to use as strict checks as possible to determine it. But an outcome might not be as expected. Feel free to improve the code or introduce a different API.
+
+## Prerequisites
+
+- Linux as operating system or WSL2 on Windows (tested on Ubuntu-22.04)
+- Eclipse Ankaios [v0.3.1](https://eclipse-ankaios.github.io/ankaios/0.3/usage/installation/)
+- [Podman](https://podman.io/docs/installation) v4.6 or newer as the container runtime used by [Eclipse Ankaios](https://eclipse-ankaios.github.io/ankaios/0.3/)
+
+Please note that all workloads are setup to use the host's network IPC and PID namespace for simplicitly and that Eclipse eCAL uses the fast shared memory approach to send and receive data.
 
 ## Run
 
-Adjust the mount path of `coordinates_publisher` to use an absolute path to the coordinates file inside the [Ankaios manifest](config/startConfig.yaml). Replace the path `/path/to/ankaios_ecal/coordinates_publisher/assets/trk_files/route_nuernberg.csv` through the absolute path.
+Adjust the mount path of the `coordinates_publisher` workload inside the [Ankaios manifest](config/startConfig.yaml) to use an absolute path to the coordinates file. Replace the path `/path/to/ankaios_ecal/coordinates_publisher/assets/trk_files/route_nuernberg.csv` with the absolute path.
 
-The examples can be run by executing the following script, which builds all the workloads with the podman runtime and starts Ankaios with a predefined [Ankaios manifest](config/startConfig.yaml) containing all the built workloads:
+The examples can be run by executing the following script, which builds all the workloads with the podman runtime and starts [Eclipse Ankaios](https://eclipse-ankaios.github.io/ankaios/0.3/) with all workloads part of the predefined [Ankaios manifest](config/startConfig.yaml).
 
 ```shell
 ./run.sh
@@ -22,7 +41,7 @@ The examples can be run by executing the following script, which builds all the 
 
 Afterwards, open your web browser (Google Chrome) and go to [http://localhost:5500](http://localhost:5500).
 
-In addition, open a new terminal window and execute the `ank get workloads` command every 1 second to follow the `sideseeing_generator` workload started by the `sideseeing_starter` workload after a few seconds (approx. 20 sec). When the workload is up and running the sideseeings shall be visible on the web ivi.
+In addition, open a new terminal window and execute the `ank get workloads` command every 1 second to follow the `sideseeing_generator` workload started by the `sideseeing_starter` workload after a few seconds. When the workload is up and running the sideseeings shall be visible on the web ivi.
 
 ```shell
 watch -n 1 ank get workloads
@@ -31,6 +50,34 @@ watch -n 1 ank get workloads
 ## Shutdown
 
 Press Ctr + C in the terminal window where the `run.sh` script is running. Do not just exit the terminal window, it is not guaranteed that the Ankaios server and Ankaios agent with all the workloads on the podman runtime are canceled properly. If you have accidentially exited the terminal window, just run `shutdown.sh` script manually in a new terminal window. It cleans up everything again.
+
+## Application logs
+
+In addition or for debugging reasons you can display logs of several applications by using the podman logs command in a separate terminal window.
+
+Example:
+
+```shell
+podman logs -f web_ivi
+```
+
+Get the names of each workload by executing `podman ps -a` or `ank get workloads` when the scenario runs.
+
+## Eclipse Ankaios logs
+
+For debugging reasons, display the logs of the Software Orchestrator Eclipse Ankaios itself.
+
+For displaying the Ankaios server logs, run the following command in a separate terminal window:
+
+```shell
+tail -f /tmp/ankaios-server.log
+```
+
+Or for the Ankaios agent:
+
+```shell
+tail -f /tmp/ankaios-agent_A.log
+```
 
 ## Change the route of the vehicle
 
@@ -45,9 +92,19 @@ latitude,longitude
 ...
 ```
 
-You can generate a new route and put the coordinates in the same csv file structure into another a file inside `coordinates_publisher/assets/trk_files` and adjust the Ankaios manifest to instruct the `coordinates_publisher` to use that new route file.
+You can generate a new route csv file containing latitude and longitude coordinates that the `coordinates_publisher` will use.
 
-Adjust this line and replace `<new_trk_file>.csv` with the new file name:
+To generate a new route the open osm.router-project.org API is used. Go to google maps or your favourite maps API and select some source and destination longitude/latitude coordinates and execute the following script inside the tools folder after entering the `coordintates_publisher` devcontainer:
+
+```shell
+python3 tools/generate_route.py --output assets/trk_files/new_route_file.csv 49.44215 11.111729 49.443540 11.110035
+```
+
+The first the latitude/longitude pair represents the source and the second latitude/longitude pair is the destination (use -h of the python script to display the argument information). The script uses the osm.router-project API to generate a route between the source and destination and writes the output to a csv file containing the latitude and longitude coordinates of the whole route.
+
+Recommendation: Keep the route short otherwise you have a long runtime because the `coordinates_publisher` publishes lat/lon coordinates every 1 sec.
+
+Adjust the [Ankaios manifest](config/startConfig.yaml) to point to your new generated csv route file:
 
 ```yaml
 # line 14
@@ -59,19 +116,9 @@ coordinates_publisher:
 ...
 ```
 
-To generate a new route the open osm.router-project.org API is used. Go to google maps or your favourite maps API and select some source and destination longitude/latitude coordinates and execute the following script inside the tools folder after entering the `coordintates_publisher` devcontainer:
-
-```shell
-python3 tools/generate_route.py --output assets/trk_files/new_route_file.csv 49.44215 11.111729 49.443540 11.110035
-```
-
-The first the latitude/longitude pair represents the source and the second latitude/longitude pair is the destination (use -h of the python script to display the argument information). The script uses the osm.router-project API to generate a route between the source and destination and writes the output to a csv file containing the latitude and longitude coordinates of the whole route.
-
-Recommendation: Keep the route short otherwise you have a long runtime because the coordinates_publisher publishes lat/lon coordinates every 1 sec.
-
-Adjust the path like mentioned above inside the Ankaios manifest to point to your new csv file containing the coordinates of the new generated route.
-
 ## Extend the previous challenge
+
+### Send real speed limits
 
 If you search for some challenge, then develop a new workload that publishes the speed value of the current lat/lon coordinate with Eclipse eCAL. The `web_ivi` can then subscribe on the speed values and can adjust the speed inside the speedometer according to the received speed value.
 
@@ -96,3 +143,11 @@ def query_speed_limits(lat, lon):
 ```
 
 Feel free to create own challenges or modifications.
+
+## Use AI to optimize the city detection
+
+Currently, the `sideseeing_starter` relies on the [Nominatim API](https://nominatim.org/release-docs/develop/) like explanied in the architecture nodes above. The meta information for an latitude/longitude coordinate does not contain the exact information about whether the vehicle is within a city or not. The `sideseeing_starter`'s code was created to use as strict checks as the data from the API allows. Keep in mind that also some highway parts are considered as part of a city boundary. To improve the place name sign detection (a real city boundary detection) implement an AI workload that checks with the vehicles front camera if the place name sign was passed to make city recognition more granular.
+
+Practical thoughts:
+
+Introduce demo data and implement the AI workload. Maybe you can extend the `coordinates_publisher` to support some path to the images of the place name signs (entering and leaving a city) in a separate column of a certain latitude/longitude coordinate. The image is published with the Eclipse eCAL middleware and the AI workload subscribes on that image data. The AI workload analyses the picture and determines accodring to the place name sign or some other indicators that the vehicle is entering or leaving the city. Extend the `sideseeing_starter` workload afterwards to include this new information about the place name signs to determine if the `sideseeing_generator` shall be started or not. You can use Eclipse eCAL again to receive the information of the AI workload inside the `sideseeing_starter` by subscribing to that new topic.
