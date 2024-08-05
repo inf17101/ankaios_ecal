@@ -4,7 +4,27 @@ set -e
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 ANKAIOS_SERVER_SOCKET="0.0.0.0:25551"
 ANKAIOS_SERVER_URL="http://${ANKAIOS_SERVER_SOCKET}"
-ANKAIOS_MANIFEST_DIR="config/startConfig.yaml"
+ANKAIOS_MANIFEST_PATH="config/startConfig.yaml"
+
+print_usage() {
+  echo "Usage: $0 [coordinates_csv_file]"
+  echo "coordinates_csv_file: path to the csv trk file containing the lat/lon coordinates, e.g. coordinates_publisher/assets/trk_files/route_nuernberg.csv"
+}
+
+if [ -z "$1" ]; then
+  print_usage
+  exit 1
+fi
+
+SRC_COORDINATES_FILE_PATH="$1"
+
+  if [ ! -f "$SRC_COORDINATES_FILE_PATH" ]; then
+    echo "Error: File not found: $SRC_COORDINATES_FILE_PATH"
+    print_usage
+    exit 1
+  fi
+
+DEST_COORDINATES_FILE_PATH="/tmp/trk.csv"
 
 echo "Building coordinates_publisher:latest"
 (
@@ -32,7 +52,7 @@ echo "Building web_ivi:latest"
 
 echo "Build done."
 
-echo "Starting Eclipse Ankaios with Ankaios manifest ${ANKAIOS_MANIFEST_DIR}"
+echo "Starting Eclipse Ankaios with Ankaios manifest ${ANKAIOS_MANIFEST_PATH}"
 
 trap 'cleanup_routine' EXIT SIGTERM SIGQUIT SIGKILL
 
@@ -48,11 +68,12 @@ run_ankaios() {
   fi
 
   ANKAIOS_LOG_DIR="/tmp"
-  mkdir -p ${ANKAIOS_LOG_DIR}
+
+  cp ${SRC_COORDINATES_FILE_PATH} ${DEST_COORDINATES_FILE_PATH}
 
   # Start the Ankaios server
   echo "Starting Ankaios server"
-  ${ANK_BIN_DIR}/ank-server --startup-config ${SCRIPT_DIR}/${ANKAIOS_MANIFEST_DIR} --address ${ANKAIOS_SERVER_SOCKET} > ${ANKAIOS_LOG_DIR}/ankaios-server.log 2>&1 &
+  ${ANK_BIN_DIR}/ank-server --startup-config ${SCRIPT_DIR}/${ANKAIOS_MANIFEST_PATH} --address ${ANKAIOS_SERVER_SOCKET} > ${ANKAIOS_LOG_DIR}/ankaios-server.log 2>&1 &
 
   sleep 2
   # Start an Ankaios agent

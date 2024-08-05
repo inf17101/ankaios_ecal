@@ -31,13 +31,13 @@ Please note that all workloads are setup to use the host's network IPC and PID n
 
 ## Run
 
-Adjust the mount path of the `coordinates_publisher` workload inside the [Ankaios manifest](config/startConfig.yaml) to use an absolute path to the coordinates file. Replace the path `/path/to/ankaios_ecal/coordinates_publisher/assets/trk_files/route_nuernberg.csv` with the absolute path.
-
-The examples can be run by executing the following script, which builds all the workloads with the podman runtime and starts [Eclipse Ankaios](https://eclipse-ankaios.github.io/ankaios/0.3/) with all workloads part of the predefined [Ankaios manifest](config/startConfig.yaml).
+The sideseeing example scenario can be run by executing the following script, which builds all the workloads with the podman runtime and starts [Eclipse Ankaios](https://eclipse-ankaios.github.io/ankaios/0.3/) with all workloads part of the predefined [Ankaios manifest](config/startConfig.yaml). The `coordinates_publisher` needs a csv file containing the latitude/longitude coordinates of an example route to publish the coordinates. Pass the example csv file path containing coordinates of the german city 'Nuremberg' to the script or use your custom coordinates csv file like described in section [Change the route of the vehicle](#change-the-route-of-the-vehicle). The example csv files are located in `coordinates_publisher/assets/trk_files`
 
 ```shell
-./run.sh
+./run.sh coordinates_publisher/assets/trk_files/route_nuernberg.csv
 ```
+
+**Note:** The `run.sh` script copies the csv file into the `/tmp` directory with a common file name to avoid that the user has to change the csv file path in the container options of the `coordinates_publisher` workload inside the [Ankaios manifest](config/startConfig.yaml), when a different coordinates file is used.
 
 Afterwards, open your web browser (Google Chrome) and go to [http://localhost:5500](http://localhost:5500).
 
@@ -104,14 +104,4 @@ The first the latitude/longitude pair represents the source and the second latit
 
 Recommendation: Keep the route short otherwise you have a long runtime because the `coordinates_publisher` publishes lat/lon coordinates every 1 sec.
 
-Adjust the [Ankaios manifest](config/startConfig.yaml) to point to your new generated csv route file:
-
-```yaml
-# line 14
-coordinates_publisher:
-...
-  runtimeConfig:
-    ...
-    commandOptions: ["--ipc=host", "--pid=host", "--network=host", "-v", "/path/to/coordinates_publisher/assets/trk_files/<new_trk_file>.csv:/trk_files/trk.csv", "--name", "coordinates_publisher"]
-...
-```
+To try out the new coordinates csv file, go to section [Run](#run) and pass the new csv file path to the run script.
