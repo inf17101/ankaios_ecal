@@ -21,7 +21,7 @@ SRC_COORDINATES_FILE_PATH="$1"
   if [ ! -f "$SRC_COORDINATES_FILE_PATH" ]; then
     echo "Error: File not found: $SRC_COORDINATES_FILE_PATH"
     print_usage
-    exit 1
+    exit 2
   fi
 
 DEST_COORDINATES_FILE_PATH="/tmp/trk.csv"
